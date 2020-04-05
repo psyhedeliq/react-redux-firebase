@@ -1,18 +1,8 @@
 import React, { useEffect, useReducer } from 'react';
 import { db } from './firestore';
-
-const initialSubjectData = [];
-
-const subjectReducer = (state = initialSubjectData, action) => {
-  switch (action.type) {
-    case 'INIT_SUBJECT_LIST':
-      console.log('##############################');
-      console.log(state, action);
-      return action.data;
-    default:
-      return state;
-  }
-};
+import { subjectReducer, initialSubjectData } from './cornelfilip.reducer';
+import { initSubjectListAction } from './cornelfilip.action';
+import { SubjectList } from './subject-list/subject-list.component';
 
 const CornelFilip = () => {
   const [subjectData, updateSubjectData /* dispatch */] = useReducer(
@@ -27,13 +17,10 @@ const CornelFilip = () => {
       // connect to the firestore
       try {
         const subjectList = await subjectCollection.get();
-        const data = subjectList.docs.map(doc => {
+        const data = subjectList.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        updateSubjectData({
-          type: 'INIT_SUBJECT_LIST',
-          data
-        });
+        updateSubjectData(initSubjectListAction(data));
       } catch (error) {
         console.log('Getting a list from firestore FAILED!', error);
       }
@@ -45,7 +32,7 @@ const CornelFilip = () => {
       title: 'Firestore database with React, Redux and ES6+',
       description:
         'Having some fun, connecting and interacting with a database',
-      createdAt: +new Date()
+      createdAt: +new Date(),
     });
   };
 
@@ -53,11 +40,7 @@ const CornelFilip = () => {
     <div>
       <h1>Subjects to learn and discover</h1>
       <div>
-        {/* we destructure id and title from subject */}
-        {subjectData.map(({ id, title }, key) => {
-          // console.log(subject);
-          return <div key={id}>{title}</div>;
-        })}
+        <SubjectList subjectData={subjectData} />
       </div>
     </div>
   );
