@@ -1,1 +1,2 @@
 export const INIT_SUBJECT_LIST = 'INIT_SUBJECT_LIST';
+export const ADD_SUBJECT_LIST = 'ADD_SUBJECT_LIST';

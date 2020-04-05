@@ -18,7 +18,7 @@ const AddSubject = ({
   // onChange handler
   const onChange = (e) => {
     const { name, value } = e.target;
-    console.log('onChange', name, value);
+    // console.log('onChange', name, value);
     setFormData({
       ...formData,
       [name]: value,

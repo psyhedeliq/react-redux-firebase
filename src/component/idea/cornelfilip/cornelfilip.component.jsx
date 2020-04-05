@@ -4,6 +4,7 @@ import { subjectReducer, initialSubjectData } from './cornelfilip.reducer';
 import { initSubjectListAction } from './cornelfilip.action';
 import { SubjectList } from './subject-list/';
 import { AddSubject } from './add-subject/';
+import { ADD_SUBJECT_LIST } from './cornelfilip.const';
 
 const CornelFilip = () => {
   const [subjectData, updateSubjectData /* dispatch */] = useReducer(
@@ -14,6 +15,7 @@ const CornelFilip = () => {
   const subjectCollection = db.collection('subject');
 
   useEffect(() => {
+    let unsubscribe;
     (async () => {
       // connect to the firestore
       try {
@@ -22,10 +24,34 @@ const CornelFilip = () => {
           return { id: doc.id, ...doc.data() };
         });
         updateSubjectData(initSubjectListAction(data));
+
+        // onSnapshot => we listen for document changes in the database
+        unsubscribe = subjectCollection.onSnapshot((changeList) => {
+          changeList.docChanges().forEach((change) => {
+            // added
+            if (
+              change.type === 'added' &&
+              change.doc.metadata.hasPendingWrites
+            ) {
+              const subject = {
+                id: change.doc.id,
+                ...change.doc.data(),
+              };
+
+              updateSubjectData({
+                type: ADD_SUBJECT_LIST,
+                subject,
+              });
+            } else if (change.type === 'modified') {
+            } else if (change.type === 'removed') {
+            }
+          });
+        });
       } catch (error) {
         console.log('Getting a list from firestore FAILED!', error);
       }
     })();
+    return unsubscribe;
   }, []);
 
   // const addSubject = () => {
