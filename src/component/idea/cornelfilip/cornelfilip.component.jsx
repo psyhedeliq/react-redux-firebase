@@ -1,10 +1,14 @@
 import React, { useEffect, useReducer } from 'react';
 import { db } from './firestore';
 import { subjectReducer, initialSubjectData } from './cornelfilip.reducer';
-import { initSubjectListAction } from './cornelfilip.action';
+import {
+  initSubjectListAction,
+  removeSubjectFromListAction,
+  addSubjectToListAction,
+} from './cornelfilip.action';
 import { SubjectList } from './subject-list/';
 import { AddSubject } from './add-subject/';
-import { ADD_SUBJECT_LIST } from './cornelfilip.const';
+import { ADD_SUBJECT_LIST, REMOVE_SUBJECT_LIST } from './cornelfilip.const';
 
 const CornelFilip = () => {
   const [subjectData, updateSubjectData /* dispatch */] = useReducer(
@@ -38,12 +42,13 @@ const CornelFilip = () => {
                 ...change.doc.data(),
               };
 
-              updateSubjectData({
-                type: ADD_SUBJECT_LIST,
-                subject,
-              });
+              updateSubjectData(addSubjectToListAction(subject));
             } else if (change.type === 'modified') {
             } else if (change.type === 'removed') {
+              updateSubjectData(removeSubjectFromListAction(change.doc.id));
+              // console.log(
+              //   `Update Redux by removing this id:  ${change.doc.id}`
+              // );
             }
           });
         });
@@ -79,12 +84,18 @@ const CornelFilip = () => {
     // console.log('data received from the form', data);
   };
 
+  const deleteSubject = (id) => {
+    // remove the subject from the database
+    // console.log('Delete this id: ', id);
+    subjectCollection.doc(id).delete();
+  };
+
   return (
     <div>
       <h1>Subjects to learn and discover</h1>
       <div>
         <AddSubject updateData={updateData} />
-        <SubjectList subjectData={subjectData} />
+        <SubjectList subjectData={subjectData} onClick={deleteSubject} />
       </div>
     </div>
   );
