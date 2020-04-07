@@ -1,16 +1,23 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import { db } from './firestore';
 import { subjectReducer, initialSubjectData } from './cornelfilip.reducer';
 import {
   initSubjectListAction,
   removeSubjectFromListAction,
   addSubjectToListAction,
+  updateSubjectInListAction,
 } from './cornelfilip.action';
 import { SubjectList } from './subject-list/';
 import { AddSubject } from './add-subject/';
-import { ADD_SUBJECT_LIST, REMOVE_SUBJECT_LIST } from './cornelfilip.const';
+
+const emptySubject = {
+  title: '',
+  description: '',
+  id: null,
+};
 
 const CornelFilip = () => {
+  const [subjectToEdit, setSubjectToEdit] = useState(emptySubject);
   const [subjectData, updateSubjectData /* dispatch */] = useReducer(
     subjectReducer,
     initialSubjectData
@@ -32,18 +39,18 @@ const CornelFilip = () => {
         // onSnapshot => we listen for document changes in the database
         unsubscribe = subjectCollection.onSnapshot((changeList) => {
           changeList.docChanges().forEach((change) => {
+            const subject = {
+              id: change.doc.id,
+              ...change.doc.data(),
+            };
             // added
             if (
               change.type === 'added' &&
               change.doc.metadata.hasPendingWrites
             ) {
-              const subject = {
-                id: change.doc.id,
-                ...change.doc.data(),
-              };
-
               updateSubjectData(addSubjectToListAction(subject));
             } else if (change.type === 'modified') {
+              updateSubjectData(updateSubjectInListAction(subject));
             } else if (change.type === 'removed') {
               updateSubjectData(removeSubjectFromListAction(change.doc.id));
               // console.log(
@@ -69,18 +76,28 @@ const CornelFilip = () => {
   // };
 
   // we destructure data
-  const updateData = ({ id, title, description }) => {
-    if (id) {
-      // edit
+  const updateData = ({ name, value, save }) => {
+    if (save) {
+      // save to the database
+      if (subjectToEdit.id) {
+        // edit
+        // console.log(subjectToEdit);
+        subjectCollection.doc(subjectToEdit.id).set(subjectToEdit);
+      } else {
+        // add
+        subjectCollection.add({
+          ...subjectToEdit,
+          createdAt: +new Date(),
+        });
+      }
     } else {
-      // add
-      subjectCollection.add({
-        title,
-        description,
-        createdAt: +new Date(),
+      // update the state
+      setSubjectToEdit({
+        ...subjectToEdit,
+        [name]: value,
       });
     }
-    console.log('data received from the form', id, title, description);
+    // console.log('data received from the form', id, title, description);
     // console.log('data received from the form', data);
   };
 
@@ -90,12 +107,21 @@ const CornelFilip = () => {
     subjectCollection.doc(id).delete();
   };
 
+  const editSubject = (id) => {
+    // set subject to be edited
+    setSubjectToEdit(subjectData.filter((subject) => subject.id === id)[0]);
+  };
+
   return (
     <div>
       <h1>Subjects to learn and discover</h1>
       <div>
-        <AddSubject updateData={updateData} />
-        <SubjectList subjectData={subjectData} onClick={deleteSubject} />
+        <AddSubject updateData={updateData} subject={subjectToEdit} />
+        <SubjectList
+          subjectData={subjectData}
+          onDelete={deleteSubject}
+          onEdit={editSubject}
+        />
       </div>
     </div>
   );

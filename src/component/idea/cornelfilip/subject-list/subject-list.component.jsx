@@ -1,7 +1,11 @@
 import React from 'react';
-import { StyledSubjectItem, StyledSubjectDelete } from './subject-list.style';
+import {
+  StyledSubjectItem,
+  StyledSubjectDelete,
+  StyledSubjectEdit,
+} from './subject-list.style';
 
-const SubjectList = ({ subjectData, onClick }) => {
+const SubjectList = ({ subjectData, onEdit, onDelete }) => {
   return (
     <div>
       <h2>List of subjects</h2>
@@ -13,7 +17,10 @@ const SubjectList = ({ subjectData, onClick }) => {
             <StyledSubjectItem key={id}>
               <h3>{title}</h3>
               <div>{description}</div>
-              <StyledSubjectDelete onClick={() => onClick(id)}>
+              <StyledSubjectEdit onClick={() => onEdit(id)}>
+                &#9998;
+              </StyledSubjectEdit>
+              <StyledSubjectDelete onClick={() => onDelete(id)}>
                 &times;
               </StyledSubjectDelete>
             </StyledSubjectItem>

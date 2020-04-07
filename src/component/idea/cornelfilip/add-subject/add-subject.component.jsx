@@ -1,17 +1,6 @@
 import React, { useState, useRef } from 'react';
 
-const AddSubject = ({
-  id = null,
-  title = '',
-  description = '',
-  updateData,
-}) => {
-  const [formData, setFormData] = useState({
-    title,
-    description,
-    id,
-  });
-
+const AddSubject = ({ subject, updateData }) => {
   // the input from the DOM will be titleRef.current because that is how useRef() works!
   const titleRef = useRef();
 
@@ -19,9 +8,10 @@ const AddSubject = ({
   const onChange = (e) => {
     const { name, value } = e.target;
     // console.log('onChange', name, value);
-    setFormData({
-      ...formData,
-      [name]: value,
+    updateData({
+      name,
+      value,
+      save: false,
     });
   };
 
@@ -29,14 +19,9 @@ const AddSubject = ({
   const onSubmit = (e) => {
     e.preventDefault();
     // console.log('onSubmit', formData);
-    updateData(formData);
-
-    // reset the form input values
-    setFormData({
-      title: '',
-      description: '',
+    updateData({
+      save: true,
     });
-    titleRef.current.focus();
   };
 
   return (
@@ -49,7 +34,7 @@ const AddSubject = ({
           name='title'
           type='text'
           id='title'
-          value={formData.title}
+          value={subject.title}
           onChange={onChange}
         />
 
@@ -59,7 +44,7 @@ const AddSubject = ({
           id='description'
           cols='30'
           rows='10'
-          value={formData.description}
+          value={subject.description}
           onChange={onChange}
         />
 
